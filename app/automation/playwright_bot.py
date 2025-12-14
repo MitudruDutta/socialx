@@ -249,11 +249,12 @@ class PlaywrightTwitterBot:
     
     async def _screenshot(self, name: str):
         try:
-            path = Path(f"data/screenshots/{name}_{int(asyncio.get_event_loop().time())}.png")
+            timestamp = int(time.time())
+            path = Path(f"data/screenshots/{name}_{timestamp}.png")
             path.parent.mkdir(parents=True, exist_ok=True)
             await self.page.screenshot(path=str(path))
-        except:
-            pass
+        except Exception as e:
+            logger.debug(f"Screenshot failed: {e}")
     
     async def _on_response(self, response):
         if response.status == 429:
@@ -262,18 +263,26 @@ class PlaywrightTwitterBot:
             logger.warning("Rate limit detected (429). Operations paused for 15 minutes.")
     
     async def close(self):
-        if self.page: 
-            try: await self.page.close()
-            except: pass
-        if self.context: 
-            try: await self.context.close()
-            except: pass
-        if self.browser: 
-            try: await self.browser.close()
-            except: pass
-        if self.playwright: 
-            try: await self.playwright.stop()
-            except: pass
+        if self.page:
+            try:
+                await self.page.close()
+            except Exception:
+                pass
+        if self.context:
+            try:
+                await self.context.close()
+            except Exception:
+                pass
+        if self.browser:
+            try:
+                await self.browser.close()
+            except Exception:
+                pass
+        if self.playwright:
+            try:
+                await self.playwright.stop()
+            except Exception:
+                pass
         self.page = None
         self.context = None
         self.browser = None

@@ -1,6 +1,6 @@
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
-from typing import Optional, List
+from typing import Optional
 from loguru import logger
 from app.config import settings
 import httpx

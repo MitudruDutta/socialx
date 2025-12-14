@@ -4,13 +4,12 @@ import asyncio
 import random
 from datetime import datetime
 from loguru import logger
-from sqlalchemy.orm import Session
 from app.config import settings
 from app.generators.text_generator import TextGenerator
 from app.generators.image_generator import ImageGenerator
 from app.automation.playwright_bot import PlaywrightTwitterBot
 from app.storage import SessionLocal
-from app.storage.models import Mention, Tweet, Action, TweetStatus, ActionType
+from app.storage.models import Mention, Tweet, TweetStatus
 
 class AgentState(TypedDict):
     mentions: List[Dict[str, Any]]

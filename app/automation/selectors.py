@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 from loguru import logger
 
 class TwitterSelectors:
@@ -32,5 +32,5 @@ class TwitterSelectors:
             selector = await self.get(element_name)
             element = await page.wait_for_selector(selector, timeout=5000)
             return element is not None
-        except:
+        except Exception:
             return False

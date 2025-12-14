@@ -1,6 +1,5 @@
 import torch
 from pathlib import Path
-from typing import Optional
 from loguru import logger
 from app.config import settings
 from datetime import datetime

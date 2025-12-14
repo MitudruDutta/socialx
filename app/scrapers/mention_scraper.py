@@ -28,7 +28,7 @@ class MentionScraper:
             for el in elements[:limit]:
                 try:
                     tweets.append(await bot._extract_tweet(el))
-                except:
+                except Exception:
                     continue
             
             return tweets

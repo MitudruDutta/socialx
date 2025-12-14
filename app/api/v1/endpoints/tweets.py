@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 from app.agents.orchestrator import TwitterAgentOrchestrator
 from app.generators.text_generator import TextGenerator
 
