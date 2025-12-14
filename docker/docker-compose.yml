@@ -4,18 +4,19 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: twitter_bot
-      POSTGRES_PASSWORD: secure_password
-      POSTGRES_DB: twitter_bot_db
+      POSTGRES_USER: ${POSTGRES_USER:-twitter_bot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      POSTGRES_DB: ${POSTGRES_DB:-twitter_bot_db}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U twitter_bot"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-twitter_bot}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -23,7 +24,13 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
   app:
     build:
@@ -33,25 +40,40 @@ services:
       - "8000:8000"
     env_file:
       - ../.env
+    environment:
+      # Required for Playwright in Docker (Alpine/Debian) to run without issues
+      - DISABLE_SANDBOX=true
     volumes:
       - ../app:/app/app
       - ../data:/app/data
+      - ../logs:/app/logs
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
+    restart: unless-stopped
 
   celery_worker:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    command: celery -A app.tasks.celery_app worker --loglevel=info
+    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=2
     env_file:
       - ../.env
+    environment:
+      # Required for Playwright tasks
+      - DISABLE_SANDBOX=true
+    volumes:
+      - ../app:/app/app
+      - ../data:/app/data
+      - ../logs:/app/logs
     depends_on:
-      - redis
-      - postgres
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
   celery_beat:
     build:
@@ -60,8 +82,13 @@ services:
     command: celery -A app.tasks.celery_app beat --loglevel=info
     env_file:
       - ../.env
+    volumes:
+      - ../app:/app/app
+      - ../data:/app/data
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
 
   playwright:
     build:
@@ -69,11 +96,15 @@ services:
       dockerfile: docker/Dockerfile.playwright
     env_file:
       - ../.env
+    environment:
+      - DISABLE_SANDBOX=true
     volumes:
       - ../data:/app/data
     shm_size: 2gb
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:

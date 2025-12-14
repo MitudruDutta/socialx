@@ -14,7 +14,7 @@ class AlertManager:
             emoji = {"info": "ℹ️", "warning": "⚠️", "error": "❌", "critical": "🚨"}.get(level, "📢")
             text = f"{emoji} *{title}*\n\n{message}"
             
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=10.0) as client:
                 await client.post(
                     f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage",
                     json={

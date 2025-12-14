@@ -1,9 +1,10 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, JSON, Text, ForeignKey, Enum as SQLEnum
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.sql import func
 import enum
 
 Base = declarative_base()
+
 
 class TweetStatus(str, enum.Enum):
     DRAFT = "draft"
@@ -11,11 +12,13 @@ class TweetStatus(str, enum.Enum):
     POSTED = "posted"
     FAILED = "failed"
 
+
 class ActionType(str, enum.Enum):
     POST = "post"
     REPLY = "reply"
     RETWEET = "retweet"
     LIKE = "like"
+
 
 class Tweet(Base):
     __tablename__ = "tweets"
@@ -25,17 +28,27 @@ class Tweet(Base):
     twitter_id = Column(String(50), unique=True, nullable=True, index=True)
     status = Column(SQLEnum(TweetStatus), default=TweetStatus.DRAFT, index=True)
     has_image = Column(Boolean, default=False)
-    media_urls = Column(JSON, default=lambda: [])
-    hashtags = Column(JSON, default=lambda: [])
+    media_urls = Column(JSON, default=list)
+    hashtags = Column(JSON, default=list)
     scheduled_for = Column(DateTime(timezone=True), nullable=True, index=True)
     posted_at = Column(DateTime(timezone=True), nullable=True)
     likes_count = Column(Integer, default=0)
     retweets_count = Column(Integer, default=0)
     generation_prompt = Column(Text, nullable=True)
+    
+    # Foreign keys
     campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=True)
     parent_tweet_id = Column(Integer, ForeignKey("tweets.id"), nullable=True)
+    reply_to_mention_id = Column(Integer, ForeignKey("mentions.id"), nullable=True)
+    
+    # Relationships
+    campaign = relationship("Campaign", back_populates="tweets")
+    reply_to_mention = relationship("Mention", back_populates="response_tweet")
+    
+    # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
 
 class Campaign(Base):
     __tablename__ = "campaigns"
@@ -45,11 +58,15 @@ class Campaign(Base):
     description = Column(Text, nullable=True)
     status = Column(String(20), default="active", index=True)
     goal = Column(String(500), nullable=False)
-    topics = Column(JSON, default=lambda: [])
-    posting_schedule = Column(JSON, default=lambda: {})
+    topics = Column(JSON, default=list)
+    posting_schedule = Column(JSON, default=dict)
     start_date = Column(DateTime(timezone=True), nullable=False)
     end_date = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    tweets = relationship("Tweet", back_populates="campaign")
+
 
 class Mention(Base):
     __tablename__ = "mentions"
@@ -64,6 +81,10 @@ class Mention(Base):
     priority = Column(Integer, default=1)
     mentioned_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationship to response tweet
+    response_tweet = relationship("Tweet", back_populates="reply_to_mention", uselist=False)
+
 
 class Action(Base):
     __tablename__ = "actions"
@@ -77,6 +98,7 @@ class Action(Base):
     retry_count = Column(Integer, default=0)
     executed_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 
 class TwitterSelector(Base):
     __tablename__ = "twitter_selectors"

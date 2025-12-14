@@ -1,5 +1,6 @@
 from app.config import settings
 from sqlalchemy import create_engine, text
+import redis
 
 print(f"DB URL: {settings.DATABASE_URL.replace(settings.DATABASE_URL.split(':')[2].split('@')[0], '***')}")
 print(f"Redis URL: {settings.REDIS_URL.replace(settings.REDIS_URL.split(':')[2].split('@')[0], '***')}")
@@ -12,7 +13,6 @@ try:
 except Exception as e:
     print(f"DB Connection FAILED: {e}")
 
-import redis
 try:
     r = redis.from_url(settings.REDIS_URL, ssl_cert_reqs=None)
     r.ping()

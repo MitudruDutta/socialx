@@ -1,7 +1,9 @@
 from pydantic_settings import BaseSettings
 from typing import List, Optional, Any
 from functools import lru_cache
+from pydantic import model_validator
 import urllib.parse
+from pathlib import Path
 
 def parse_comma_separated_list(v: Any) -> List[str]:
     if isinstance(v, str):
@@ -11,6 +13,9 @@ def parse_comma_separated_list(v: Any) -> List[str]:
 class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = False
+    
+    # Paths
+    DATA_DIR: Path = Path("data")
     
     # Security - Fail fast if missing
     SECRET_KEY: str
@@ -66,6 +71,13 @@ class Settings(BaseSettings):
     ENABLE_VIDEO_GENERATION: bool = False
     REQUIRE_HUMAN_REVIEW: bool = True
     
+    @model_validator(mode='after')
+    def check_twitter_credentials(self) -> 'Settings':
+        if self.ENABLE_AUTO_POSTING or self.ENABLE_AUTO_REPLIES:
+            if not self.TWITTER_USERNAME or not self.TWITTER_PASSWORD:
+                raise ValueError("TWITTER_USERNAME and TWITTER_PASSWORD are required for auto-posting/replies")
+        return self
+
     @property
     def content_topics_list(self) -> List[str]:
         if not self.CONTENT_TOPICS:
