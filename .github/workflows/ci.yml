@@ -8,7 +8,7 @@ on:
 
 defaults:
   run:
-    working-directory: twitter-ai-agent
+    working-directory: socialx
 
 jobs:
   test:
@@ -55,4 +55,4 @@ jobs:
       
       - name: Lint
         run: ruff check app/
-        working-directory: twitter-ai-agent
+        working-directory: socialx
