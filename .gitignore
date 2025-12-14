@@ -27,3 +27,6 @@ logs/
 .coverage
 htmlcov/
 GEMINI.md
+
+.ruff_cache/
+mypy_cache/
