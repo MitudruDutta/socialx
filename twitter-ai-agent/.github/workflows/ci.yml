@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov
+      
+      - name: Run tests
+        run: pytest tests/ -v --cov=app
+        env:
+          TWITTER_USERNAME: test
+          TWITTER_PASSWORD: test
+          OPENAI_API_KEY: sk-test
+          DATABASE_URL: sqlite:///test.db
+          REDIS_URL: redis://localhost:6379/0
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install ruff
+        run: pip install ruff
+      
+      - name: Lint
+        run: ruff check app/
