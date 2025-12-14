@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+defaults:
+  run:
+    working-directory: twitter-ai-agent
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -28,9 +32,12 @@ jobs:
         env:
           TWITTER_USERNAME: test
           TWITTER_PASSWORD: test
+          TWITTER_EMAIL: test@test.com
           OPENAI_API_KEY: sk-test
           DATABASE_URL: sqlite:///test.db
           REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-minimum-32-characters
+          ENCRYPTION_KEY: test-encryption-key-32-chars-ok
 
   lint:
     runs-on: ubuntu-latest
@@ -48,3 +55,4 @@ jobs:
       
       - name: Lint
         run: ruff check app/
+        working-directory: twitter-ai-agent

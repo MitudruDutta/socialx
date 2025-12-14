@@ -1,5 +1,29 @@
-.gemini/
-gha-creds-*.json
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
 
-.idea
+# Environment
+.env
+.env.local
+
+# Data
+data/twitter_session.json
+data/generated_images/
+data/screenshots/
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+*.log
+*.log
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
 GEMINI.md
