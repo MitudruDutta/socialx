@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-defaults:
-  run:
-    working-directory: socialx
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -55,4 +51,3 @@ jobs:
       
       - name: Lint
         run: ruff check app/
-        working-directory: socialx
